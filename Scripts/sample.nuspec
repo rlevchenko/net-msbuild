@@ -1,0 +1,20 @@
+<?xml version="1.0"?>
+<package xmlns="http://schemas.microsoft.com/packaging/2013/05/nuspec.xsd">
+    <metadata>
+        <id>$id$</id>
+        <version>1.0.0</version>
+        <title>HelloWorld Application</title>
+        <authors>Roman Levchenko</authors>
+        <requireLicenseAcceptance>false</requireLicenseAcceptance>
+        <description>Hello World Application Sample</description>
+        <releaseNotes>the first version of this unique application </releaseNotes>
+        <copyright>RL 2019</copyright>
+        <tags>sample test helloworld</tags>
+        <dependencies>
+           <!-- -->
+        </dependencies>
+    </metadata>
+   <files>
+    <file src=".\bin\$configuration$\$id$.exe" target="lib\net40\$id$.exe" />
+  </files>
+</package>

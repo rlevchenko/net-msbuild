@@ -1,0 +1,45 @@
+node {
+    
+    //Checkout (Scripts branch)
+    stage ('checkout') {
+        checkout([$class: 'GitSCM', branches: [[name: 'scripts']], doGenerateSubmoduleConfigurations: false, extensions: [], submoduleCfg: [], userRemoteConfigs: [[credentialsId: 'GitLabRepo', url: 'https://gitlab.dataart.com/da/irl/helloworld.git']]])
+    }
+
+    // Working directory
+    def scripts_path="${Workspace}/helloworld/scripts/"
+    def project_path="${Workspace}/helloworld/"
+    
+    dir(project_path) {
+
+        // project restoration
+        stage('restore') {
+        bat "msbuild ./scripts/msbuild.csproj /t:restore"
+        }
+        
+        // project building    
+        stage ('build') {
+            bat "msbuild ./scripts/msbuild.csproj"
+        }
+
+        // project packaging
+        stage('pack') {
+        bat "msbuild ./scripts/msbuild.csproj /t:pack /p:AssemblyName=HelloWorld;PackageVersion=1.0.0.%BUILD_NUMBER%"
+        }
+        
+        //copy msbuild results
+        stage ('copy') {
+        bat "msbuild ./scripts/msbuild.csproj /t:copybuild"   
+        }
+        
+        //REMOVE(!!) the bin and object folders
+        stage ('clean') {
+        bat "msbuild ./scripts/msbuild.csproj /t:clean"
+        }
+        
+        // debug information
+        stage ('debug') {
+            bat "msbuild ./scripts/msbuild.csproj /t:info"
+        }
+        
+    } //dir
+} //node

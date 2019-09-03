@@ -1,0 +1,103 @@
+﻿<Project ToolsVersion="15.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+
+    <!-- Import C# targets -->
+    <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+
+    <!-- Properties -->
+    <PropertyGroup>
+        <!-- Common values -->
+        <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+        <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+        <!-- ^^^^ Configurations ^^^^^ -->
+        <PlatformTarget>AnyCPU</PlatformTarget>
+        <AssemblyName>HelloWorld</AssemblyName>
+		    <CSFileName1>Program.cs</CSFileName1>
+		    <CSFileName2>AssemblyInfo.cs</CSFileName2>
+        <OutputPath>Bin\$(Configuration)\</OutputPath>
+        <ErrorReport>prompt></ErrorReport>
+        <WarningLevel>4</WarningLevel>
+        <TargetFrameworkVersion>v4.7.2</TargetFrameworkVersion>
+        <LocalFeed>\\localhost\packages\</LocalFeed>
+        <PackageOutputPath>$(OutputPath)Packages\</PackageOutputPath>
+		<RestoreOutputPath>Obj</RestoreOutputPath>
+        <PackageVersion>1.0.0</PackageVersion>
+        <!-- As we don't have any dependencies in the project and msbuild /t:restore is used  
+        <RestoreProjectStyle>PackageReference</RestoreProjectStyle> -->
+	    <DestinationFolder>$(MSBuildStartupDirectory)\build-nuget</DestinationFolder>
+    </PropertyGroup>
+
+    <!-- Conditional (Debug) -->
+    <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
+        <DebugSymbols>true</DebugSymbols>
+        <DebugType>Full</DebugType>
+        <Optimize>false</Optimize>
+        <DefineConstants>DEBUG;TRACE</DefineConstants>
+    </PropertyGroup>
+
+    <!-- Conditional (Release) -->
+    <PropertyGroup Condition=" '$(Configuration)' == 'Release' ">
+        <DebugType>pdbonly</DebugType>
+        <Optimize>true</Optimize>
+        <DefineConstants>TRACE</DefineConstants>
+    </PropertyGroup>
+
+    <!-- Input files -->
+    <ItemGroup>
+        <CSFile Include="$(MSBuildStartupDirectory)\$(CSFileName1)"/>
+		<CSFile Include="$(MSBuildStartupDirectory)\Properties\$(CSFileName2)"/>  
+        <NugetPackages Include="$(PackageOutputPath)$(AssemblyName).$(PackageVersion).nupkg"/>
+    </ItemGroup>
+
+    <!-- Build target -->
+    <Target Name="Build" Inputs="@(CSFile)" Outputs="$(OutputPath)$(AssemblyName).exe">
+        <MakeDir Directories="$(OutputPath)" Condition="!Exists('$(OutputPath)')" />
+        <CSC Sources="@(CSFile)" OutputAssembly="$(OutputPath)$(AssemblyName).exe" />
+        <Message Text="The build process has been completed. Check the $(OutputPath)$(AssemblyName).exe"/>
+    </Target>
+
+    <!-- Clean the build -->
+    <Target Name="Clean">
+        <RemoveDir Directories="Bin;$(RestoreOutputPath)" />
+        <Message Text="Bin and $(RestoreOutputPath) fodlers have been deleted"/>
+    </Target>
+
+    <!-- NuGet Restore -->
+    <Target Name="NugetRestore">
+        <Exec Command="nuget restore -PackagesDirectory $(PackageOutputPath)" WorkingDirectory="$(MSBuildProjectDirectory)"/>
+    </Target>
+
+    <!-- NuGet Pack -->
+    <Target Name="NugetPack">
+        <Exec Command="nuget pack sample.nuspec -properties Configuration=$(Configuration);id=$(AssemblyName) -OutputDirectory $(PackageOutputPath) -Version $(PackageVersion) -Suffix nuget" WorkingDirectory="$(MSBuildProjectDirectory)"/>
+    </Target>
+
+    <!-- Copy all files to the root directory -->
+	<Target Name="CopyBuild">
+	<Message Text="Copying MSBuild output to the $(DestinationFolder)" Importance="High"/>
+	<ItemGroup>
+		<SourceFolderA Include="Bin\**\*.*" />
+		<SourceAllFiles Include="@(SourceFolderA)" />
+	</ItemGroup>
+		<Copy SourceFiles="@(SourceAllFiles)" DestinationFolder="$(DestinationFolder)\%(RecursiveDir)"/>
+	</Target>
+
+    <!-- Useful information -->
+    <Target Name="Info">
+        <Message Text="*************************"/>
+        <Message Text="Artifacts - $(OutputPath)"/>
+        <Message Text="LocalFeed - $(LocalFeed)"/>
+        <Message Text="Package Location - $(PackageOutputPath)"/>
+        <Message Text="Configuration - $(Configuration)"/>
+		<Message Text="MSBuildProjectDirectory  = $(MSBuildProjectDirectory)" />   
+		<Message Text="MSBuildProjectFile  = $(MSBuildProjectFile)" />     
+		<Message Text="MSBuildProjectExtension  = $(MSBuildProjectExtension)" />   
+		<Message Text="MSBuildProjectFullPath  = $(MSBuildProjectFullPath)" />     
+		<Message Text="MSBuildProjectName  = $(MSBuildProjectName)" />     
+		<Message Text="MSBuildBinPath  = $(MSBuildBinPath)" />     
+		<Message Text="MSBuildProjectDefaultTargets  = $(MSBuildProjectDefaultTargets)" />     
+		<Message Text="MSBuildExtensionsPath  = $(MSBuildExtensionsPath)" />   
+		<Message Text="MSBuildStartupDirectory  = $(MSBuildStartupDirectory)" />
+        <Message Text="*************************"/>
+    </Target>
+
+</Project>
